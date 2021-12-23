@@ -50,7 +50,7 @@ func New(addr *net.UDPAddr) io.Writer {
 func (r *asyncWriter) Write(b []byte) (int, error) {
 	l := len(b)
 	if l > 0 {
-		r.delivery <- b
+		r.delivery <- copyBytes(b)
 	}
 
 	return l, nil
@@ -95,4 +95,14 @@ func (r *asyncWriter) String() string {
 		r.addr.String(),
 		r.delivered,
 	)
+}
+
+func copyBytes(bts []byte) []byte {
+	if len(bts) == 0 {
+		return nil
+	}
+
+	dest := make([]byte, len(bts))
+	copy(dest, bts)
+	return dest
 }
