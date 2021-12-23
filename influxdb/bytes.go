@@ -51,7 +51,7 @@ func (i influxDBUDPWriter) Write(data interface {
 			if buf.Len() == 0 {
 				_, outerError = i.Writer.Write(line.Bytes())
 			} else {
-				_, outerError = i.Writer.Write(buf.Bytes())
+				_, outerError = i.Writer.Write(safeBufferBytes(buf))
 				buf.Reset()
 				buf.Write(line.Bytes())
 			}
@@ -66,4 +66,17 @@ func (i influxDBUDPWriter) Write(data interface {
 	}
 
 	return outerError
+}
+
+// safeBufferBytes extracts data from buffer, copies them and places
+// into other slice to make it save to use in goroutines.
+func safeBufferBytes(b *bytes.Buffer) []byte {
+	bts := b.Bytes()
+	if len(bts) == 0 {
+		return nil
+	}
+
+	dest := make([]byte, len(bts))
+	copy(dest, bts)
+	return dest
 }
